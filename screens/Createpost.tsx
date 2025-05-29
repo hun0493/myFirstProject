@@ -18,6 +18,7 @@ import { FlatList, ScrollView } from "react-native-gesture-handler";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { MainStackScreenList } from "../stacks/MainStack";
+import HeaderBtn from "../components/HeaderBtn";
 
 // legacy css
 const styles = StyleSheet.create({
@@ -209,7 +210,8 @@ export default () => {
         Alert.alert("알림", "선택하신 사진이 없습니다. 사진을 선택해주세요");
         return;
       }
-      //페이지 이동동
+      //페이지 이동
+      //navigation(parama1(이동할 스크린 이름), param2(전달할 데이터))
       navi.navigate("UploadPost", {
         assets: selectedphotos,
       });
@@ -217,11 +219,7 @@ export default () => {
 
     //네비게이션 훅을 사용해 헤더 접근
     navi.setOptions({
-      headerRight: () => (
-        <NextHeaderBtn onPress={goTo}>
-          <NextHeaderTitle>Next</NextHeaderTitle>
-        </NextHeaderBtn>
-      ),
+      headerRight: () => <HeaderBtn title="Next" onPress={goTo} />,
     });
   }, [selectedphotos]);
 

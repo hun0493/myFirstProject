@@ -6,10 +6,10 @@ import styled from "styled-components";
 
 // 전체 화면을 감싸는 컨테이너
 const Container = styled(View)`
-  flex: 1;                      // 전체 화면 채우기
-  background-color: white;     // 배경색 흰색
-  justify-content: center;     // 세로 중앙 정렬
-  align-items: center;         // 가로 중앙 정렬
+  flex: 1; /* 전체 화면 채우기 */
+  background-color: white; /* 배경색 흰색*/
+  justify-content: center; /* 세로 중앙 정렬*/
+  align-items: center; /* 가로 중앙 정렬*/
 `;
 
 // 기본 내보내기 컴포넌트 (로딩 화면)
