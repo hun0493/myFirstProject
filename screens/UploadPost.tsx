@@ -20,6 +20,8 @@ import { AntDesign } from "@expo/vector-icons";
 import { useLayoutEffect, useState } from "react";
 import { useNavigation } from "@react-navigation/native";
 import HeaderBtn from "../components/HeaderBtn";
+import { addDoc, collection, Firestore } from "firebase/firestore";
+import { auth, firebase } from "../firebaseConfig";
 
 // 컨테이너 (전체 레이아웃을 감쌈)
 const Container = styled(View)`
@@ -105,25 +107,35 @@ export default ({
     setCaption(text);
   };
 
-  const onUpload = () => {
+  const onUpload = async () => {
     if (caption === "") {
       Alert.alert("업로드 오류", "글을 작성한 경우에만 업로드 가능합니다");
       return;
     }
 
     if (loading) return;
-
+    //1. Loading 시작
     setLoading(true);
     try {
-      // 업로드 처리 로직 (여기에 서버 업로드 코드 작성 가능)
-      setTimeout(() => {
-        setLoading(false);
-        Alert.alert("업로드 완료", "업로드가 성공적으로 완료되었습니다.");
-        navi.goBack();
-      }, 2000); // 테스트용 업로드 시뮬레이션 (2초 후 완료)
-    } catch (error) {
+      //2. Server 에 데이터 업로드
+      //-업로드할 데이터 (asset, captons 등)
+      const uploadDate = {
+        caption: caption,
+        userId: auth.currentUser?.uid,
+        createdAt: Date.now(),
+        nickname: auth.currentUser?.displayName,
+      };
+      //-업로드할 db의 경로
+      const path = collection(firebase, "posts");
+      // -Firebase DB(firestore)의 해당경로에 데이터 업로드
+      const doc = await addDoc(path, uploadDate);
+      //3. Server 에 업로드 완료시 Loading  종료
       setLoading(false);
-      Alert.alert("업로드 실패", "업로드 중 오류가 발생했습니다.");
+    } catch (error) {
+      //Excepton(예외) : 업로드 실패시  --Error
+      Alert.alert("Error", `${error}`);
+      //에러 발생 시에도 Loading 종료
+      setLoading(false);
     }
   };
 

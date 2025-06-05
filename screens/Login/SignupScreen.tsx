@@ -1,4 +1,8 @@
-import { signInWithEmailAndPassword } from "firebase/auth";
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  updateProfile,
+} from "firebase/auth";
 import React, { useState } from "react";
 import {
   Alert,
@@ -13,7 +17,6 @@ import styled from "styled-components/native";
 import { auth } from "../../firebaseConfig";
 import { FirebaseError } from "firebase/app";
 import { useNavigation } from "@react-navigation/native";
-import { AuthNaviProp } from "../../stacks/AuthStack";
 
 const ImgContainer = styled(ImageBackground)`
   flex: 1;
@@ -48,7 +51,8 @@ const UserInput = styled(TextInput)`
 `;
 const UserId = styled(UserInput)``;
 const UserPW = styled(UserInput)``;
-const LoginBtn = styled(TouchableOpacity)`
+const UserName = styled(UserInput)``;
+const SignupBtn = styled(TouchableOpacity)`
   background-color: dodgerblue;
   padding: 10px;
   border-radius: 5px;
@@ -58,7 +62,7 @@ const LoginBtnTiitle = styled(Text)``;
 const LoginBtnTitle = styled(Text)`
   color: white;
 `;
-const CreateAccountBox = styled(View)`
+const Footer = styled(View)`
   align-items: center;
 `;
 const CreateAcoountBtn = styled(TouchableOpacity)``;
@@ -67,14 +71,16 @@ const SubTitle = styled(Text)`
   color: #515151;
 `;
 export default () => {
+  const [name, setName] = useState<string>("");
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
-  const navi = useNavigation<AuthNaviProp>();
 
+  // useNavigation Hook(RN에서 제공하는 기능함수수)
+  const navi = useNavigation();
   //Email,pw input text 문자 state 에 할당
-  const onChangeText = (text: string, type: "email" | "password") => {
+  const onChangeText = (text: string, type: "email" | "password" | "name") => {
     //내가 입력한 타입에 따라 state에 text 할당
     switch (type) {
       case "email":
@@ -83,10 +89,12 @@ export default () => {
       case "password":
         setPassword(text);
         break;
+      case "name":
+        setName(text);
     }
   };
   //   Login 버튼 클릭 시, 서버와 통신하여 로그인 프로세스 진행행
-  const onLogin = async () => {
+  const onSignup = async () => {
     //[방어코드] : Email,PAssword 입력 안했을 때
     //아직 로딩인 경우 방어코드
 
@@ -94,8 +102,20 @@ export default () => {
     setLoading(true);
     //2. 서버랑 소통(try-catch , async)
     try {
-      //user ID,pw,auth 정보를 통해서 firebase에 로그인요청
-      const result = await signInWithEmailAndPassword(auth, email, password);
+      //user ID,pw,auth 정보를 통해서 firebase에 회원가입 요청
+      const result = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+      //2. 회원가입 완료시 ,해당 계정의 닉네임 갱신
+      await updateProfile(result.user, {
+        displayName: name,
+      });
+      //닉네임 갱신
+      if (result) {
+        Alert.alert("회원가입 석공공");
+      }
     } catch (error) {
       //firebase에서 에러가 발생했을 때
       if (error instanceof FirebaseError) {
@@ -111,9 +131,9 @@ export default () => {
     }
     //3. Error & Loading
   };
-  // CreateAccout 버튼 클릭 시, 회원가입 화면으로 이동
-  const goTo = () => {
-    navi.navigate("Signup");
+  // 뒤로가기 버튼 클릭 시, 로그인(이전전) 화면으로 이동
+  const goBack = () => {
+    navi.goBack();
   };
 
   return (
@@ -125,11 +145,21 @@ export default () => {
           source={require("../../assets/resources/instaDaelim_title.png")}
         />
         <WelcomeTitle>
-          🤗 Welcome!{"\n"} Here is a My Instagram for Daelim. {"\n"}Glad to
-          meet you guys!!
+          🤗 Welcome!{"\n"} 환영합니다 {"\n"}이곳은 회원가입 페이지 입니다.
+          당신의 닉네임, 이메일,등을 작성해서 회원가입을 완료해주세요 meet you
+          guys!!
         </WelcomeTitle>
         <InputField>
           <SubTitle>ID</SubTitle>
+          <UserName
+            placeholder="Nickname *"
+            keyboardType="default"
+            value={name}
+            onChangeText={(text) => {
+              onChangeText(text, "name");
+            }}
+          />
+
           <UserId
             placeholder="Email *"
             keyboardType="email-address"
@@ -149,24 +179,24 @@ export default () => {
             }}
           />
         </InputField>
-        <LoginBtn onPress={loading ? undefined : onLogin}>
-          <LoginBtnTitle>{loading ? "Loading..." : "Log in"}</LoginBtnTitle>
-        </LoginBtn>
-        <CreateAccountBox>
+        <View style={{ gap: 5 }}>
+          {/* 회원가입 버튼 */}
+          <SignupBtn onPress={loading ? undefined : onSignup}>
+            <LoginBtnTitle>
+              {loading ? "Loading..." : "Create Account"}
+            </LoginBtnTitle>
+          </SignupBtn>
+          {/* 뒤로가기 버튼 */}
+          <SignupBtn onPress={goBack} style={{ backgroundColor: "#3717ab" }}>
+            <SubTitle>go back</SubTitle>
+          </SignupBtn>
+        </View>
+        <Footer>
           <SubTitle>Already have an accont?</SubTitle>
-          <CreateAcoountBtn onPress={goTo}>
-            <SubTitle
-              style={{
-                color: "#1785fc",
-                fontWeight: "600",
-                fontSize: 12.5,
-                textDecorationLine: "underline",
-              }}
-            >
-              Create Account
-            </SubTitle>
+          <CreateAcoountBtn>
+            <SubTitle>CopyRight 2025{"\n"}RepiiCA all rights reserved</SubTitle>
           </CreateAcoountBtn>
-        </CreateAccountBox>
+        </Footer>
       </AccountBox>
     </ImgContainer>
   );
