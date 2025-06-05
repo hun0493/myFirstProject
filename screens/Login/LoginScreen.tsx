@@ -131,9 +131,9 @@ export default () => {
         <InputField>
           <SubTitle>ID</SubTitle>
           <UserId
-            placeholder="Email *"
+            placeholder={"Email *"}
             keyboardType="email-address"
-            value="{email}"
+            value={email}
             onChangeText={(text) => {
               onChangeText(text, "email");
             }}

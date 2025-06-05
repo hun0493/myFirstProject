@@ -3,6 +3,7 @@ import { initializeApp } from "firebase/app";
 import { getReactNativePersistence, initializeAuth } from "firebase/auth";
 import RNStorage from "@react-native-async-storage/async-storage";
 import { getFirestore } from "firebase/firestore";
+import { getStorage } from "firebase/storage";
 
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
@@ -27,3 +28,6 @@ export const auth = initializeAuth(app, {
 });
 //Firebase의 DB인 Firestroe 초기화 및 가져오기
 export const firebase = getFirestore(app);
+
+//Firebase의 대용량 미디어파일 Storage 초기화 및 가져오기
+export const storage = getStorage(app);

@@ -20,8 +20,10 @@ import { AntDesign } from "@expo/vector-icons";
 import { useLayoutEffect, useState } from "react";
 import { useNavigation } from "@react-navigation/native";
 import HeaderBtn from "../components/HeaderBtn";
-import { addDoc, collection, Firestore } from "firebase/firestore";
-import { auth, firebase } from "../firebaseConfig";
+import { addDoc, collection, Firestore, updateDoc } from "firebase/firestore";
+import { auth, firebase, storage } from "../firebaseConfig";
+import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
+import { assetToBlob } from "../utils";
 
 // 컨테이너 (전체 레이아웃을 감쌈)
 const Container = styled(View)`
@@ -129,6 +131,30 @@ export default ({
       const path = collection(firebase, "posts");
       // -Firebase DB(firestore)의 해당경로에 데이터 업로드
       const doc = await addDoc(path, uploadDate);
+      //2-B. Firebase Storage에 이미지를 URL 변환(Convert)해서 업로드
+      //1.여러 사진들을 URL 형식으로 변환해서 업로드할 배열생성
+      const photoURLs = [];
+      //2.여러 사진들을 반복해서 서버에 업로드하고 배열에 넣는다.
+      for (const asset of assets) {
+        // ㄴ 여러 사진들을 (storage) 업로드
+        // -path
+        const path = `posts/${auth.currentUser?.uid}/${doc.id}/${asset.id}.png`;
+        const locationRef = ref(storage, path);
+        // - blob 형태 추가 변환
+        const blob = await assetToBlob(asset.uri);
+        //-서버(=Storage) 업로드
+        const result = await uploadBytesResumable(locationRef, blob);
+        // ㄴ 서버에 업로드한 사진을 URL 로 변환
+        const url = getDownloadURL(result.ref);
+        // ㄴ URL로 변환된 사진들을 배열에 추가
+        photoURLs.push(url);
+      }
+      //3.URL로 변환된 사진들을 모아놓은 배열 서버에 업로드
+      await updateDoc(doc, {
+        photos: photoURLs,
+      });
+      //3.여러 사진들을 집어넣은 배열을 서버(=firestore)에 업로드해 갱신한다.
+
       //3. Server 에 업로드 완료시 Loading  종료
       setLoading(false);
     } catch (error) {
